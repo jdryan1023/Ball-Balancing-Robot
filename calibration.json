@@ -1,0 +1,5 @@
+{
+  "s1": { "neutral": 54.0, "gain": 1.00, "offset": 0.0, "min": 10, "max": 100 },
+  "s2": { "neutral": 54.0, "gain": 1.00, "offset": 0.0, "min": 10, "max": 100 },
+  "s3": { "neutral": 54.0, "gain": 1.00, "offset": 0.0, "min": 10, "max": 100 }
+}

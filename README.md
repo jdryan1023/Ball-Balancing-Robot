@@ -48,33 +48,27 @@ The materials needed are:
 | M5 Washer                    | 6        |
 
 ---
+### Start-up 
+1. Image Raspberry Pi with Raspberry Pi OS
+2. Open CMD and run "Initial CMD Script".  This will pull all the necessary installations and make a .venv for the robot code to operate in.
+3. GUI can be run from "Windows_Run_Gui_Silent"
 
-### Motor Angle Calibration
-Each of the three motors must be calibrated. Follow these exact steps:
+### Motor Initialization and Calibration
+1. With the motors on the bench and connected to the PCA per the wiring diagram, run "zeromotor.py".  This will put the motors in a neutral position.
+2. Power down the PCA and do not rotate the motors. Install motors onto printed platform. Install the RC horns at the same angle (best case).
+3. Run calibration.py. This will put the platform in a "zero" pose. We need to level the platform applying motor offsets, this can be achieved by using the key mapping below to jog the individual motors. 
+	NOTE: EXIT ROUTINE WITH CRTL + C!!!!!!!!!!
 
-1. **Set all motor offsets to `0`.**  
-   In `controller.py`, inside the `set_motor_angles` function under class `RobotController`, make sure it looks like this:  
-   ```python
-   self.s1.angle = clamp(theta1)
-   self.s2.angle = clamp(theta2)
-   self.s3.angle = clamp(theta3)
-    ```
-2. **Initialize the robot.**  
-   Power on the robot. Then, in your terminal (in correct directory), run:  
-   `python controller.py`  
-   This sets the initial motor positions. Once the robot has reached its position, **do not touch it**. Power it off, then use a level or measurement tool to check how flat the top plate is.
+	STEP_KEYS = {ord('c'): STEP_SUPER_COARSE, ord('z'): STEP_COARSE, ord('x'): STEP_FINE}
+	STEP_SUPER_COARSE = 5.0 
+	STEP_COARSE = 1.0
+	STEP_FINE = 0.1
 
-3. **Tune each motor's angle offset.**  
-   Based on how the plate is tilted, adjust each motor's angle by adding or subtracting an offset. Modify the code like this:
-   ```python
-   self.s1.angle = clamp(theta1) + OFFSET_S1
-   self.s2.angle = clamp(theta2) + OFFSET_S2
-   self.s3.angle = clamp(theta3) + OFFSET_S3
-   ```
-   Replace each `OFFSET_Sn` with the value needed to make the plate level. These values are specific to your hardware and may differ for each motor.
-
-4. **Iterate until balanced.**  
-   Repeat steps 2 and 3. Re-run the controller, check the plate, and adjust the offsets as needed. Continue this process until the top plate is completely flat and stable.
-
----
-
+	KEY_MAPPING for motor jog = 
+    		ord('q'): ("s1", -1),
+    		ord('a'): ("s1", 1),
+    		ord('w'): ("s2", -1),
+    		ord('s'): ("s2", 1),
+    		ord('e'): ("s3", -1),
+    		ord('d'): ("s3", 1)
+4. This will save the motor calibration offsets to a calibration.JSON and apply to the controller.py

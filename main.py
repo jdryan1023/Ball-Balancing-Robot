@@ -10,7 +10,7 @@ from PID import PIDcontroller
 
 
 # Shared variables
-latest_frame = np.zeros((200, 150, 3), dtype=np.uint8)
+latest_frame = None
 lock = threading.Lock()
 running = True
 
@@ -37,8 +37,13 @@ beta = 0.3
 # Initialize objects
 cam = Camera()
 model = RobotKinematics()
-robot = RobotController(model, model.lp, model.l1, model.l2, model.lb)
+robot = RobotController(model)   # calibration.json auto-loads
+robot.arm()
 
+print("=" * 40)
+print(f"[INFO] Robot running.")
+print(" Press Ctrl+C to exit safely")
+print("=" * 40)
 
 PID = PIDcontroller(kp, ki, kd, alpha, beta, max_theta=model.maxtheta, conversion="tanh")
 
@@ -46,33 +51,40 @@ PID = PIDcontroller(kp, ki, kd, alpha, beta, max_theta=model.maxtheta, conversio
 x, y = 100, 75
 
 def capture():
-
     global latest_frame
-    while True:
+    while running:
         frame = cam.take_picture()
         with lock:
-            latest_frame = frame 
+            latest_frame = frame
 
 def process():
     hz = 50
+    preview_div = 5   # 50Hz / 5 = 10 FPS
+    count = 0
+
     global latest_frame, x, y
-    while True:
+    while running:
         with lock:
             if latest_frame is None:
-                continue 
+                continue
             frame_copy = latest_frame.copy()
-        
+
         loop_start = time.perf_counter()
-        x, y = cam.coordinate(frame_copy)  
-        x_t, y_t = (100, 75)  # Target position
+
+        x, y = cam.coordinate(frame_copy)
+        x_t, y_t = (100, 75)
         update_robot_pos(robot, model, PID, x_t, y_t, x, y)
-        #cam.display_draw(frame_copy, (x,y))
-        #print(f"Coordinates: {x, y}")
+
+        # Preview at ~10 FPS
+        count += 1
+        if count % preview_div == 0:
+            cam.display_draw(frame_copy, (x, y))
+
         elapsed = time.perf_counter() - loop_start
         sleep_time = (1 / hz) - elapsed
         if sleep_time > 0:
-            #print(sleep_time)
             time.sleep(sleep_time)
+
 
 def update_robot_pos(robotcontroller, robotkinematics, pidcontroller, x_t, y_t, x, y): #x_t, y_t: target position, x, y: current position, t: duration 
 
@@ -107,5 +119,10 @@ try:
     while True:
         time.sleep(1)
 except KeyboardInterrupt:
+    print("\n[INFO] Ctrl+C received. Exiting...")
+finally:
     running = False
-    print("Exiting...")
+    time.sleep(0.05)  #give threads a moment to exit their loop
+    robot.disarm()
+    cam.terminate()
+    print("[INFO] Robot disarmed. Camera closed. Bye.")
