@@ -117,13 +117,6 @@ You should see the PCA9685 address (typically `0x40`).
 
 ### 2.3 Install Software
 
-Clone repository:
-
-```bash
-git clone <https://github.com/jdryan1023/Ball-Balancing-Robot>
-cd ballbot
-```
-
 Run installer:
 
 ```bash
